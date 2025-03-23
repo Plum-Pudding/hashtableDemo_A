@@ -74,8 +74,20 @@ void addStudent(studentEntry targetTable[], int ID, char name[], float GPA) {
         strcpy_s(targetTable[index].studentName, name);
         targetTable[index].GPA = GPA;
     }
+}
+
+void editStudent(studentEntry targetTable[], char name[], int ID, float GPA) {
+    //generate index from key using hash func
+    unsigned int index = (hashDJB2(name) % TABLELENGTH);
 
 
+    printf("Changing student data at index %u, ", index);
+    printf("given key \"%s\"\n", name);
+    //printf("index unsigned: %u\n", index);
+    //printf("index signed: %d\n", index);
+
+    targetTable[index].ID = ID;
+    targetTable[index].GPA = GPA;
 
 }
 
