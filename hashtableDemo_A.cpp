@@ -9,7 +9,7 @@
 //#include <stdlib.h>
 #include <chrono>
 
-#define TABLELENGTH 100
+#define TABLELENGTH 5000
 #define STUDENTNAMELEN 32
 
 /*
@@ -37,12 +37,7 @@ long hashDJB2(char* str)
     while (c = *str++)
         hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
-    //finalHash = hash + ULONG_MAX + 0;
-    //printf("finalHash: %u\n", finalHash);
-    //printf("hash: %d\n", hash);
-    //return finalHash;
-
-    //don't ask, because I also don't know
+    //original algorithm requires unsigned key-- this allows it to use regular chars without returning negative values
     if (hash < 0) {
         hash = (hash * -1) + 1;
     }
@@ -57,13 +52,13 @@ void addStudent(studentEntry targetTable[], int ID, char name[], float GPA) {
     
 
     printf("Adding student at index %u, ", index);
-    printf("given key \"%s\"\n", name);
+    printf("given key = \"%s\"\n", name);
     //printf("index unsigned: %u\n", index);
     //printf("index signed: %d\n", index);
 
     //check if position is already populated, skip if true-- I don't think this works but ¯\_(._.)_/¯ )
     if (targetTable[index].studentName == NULL || targetTable[index].ID == NULL || targetTable[index].GPA == NULL) {
-        printf("%s", "Table position already taken: Check for hash collision!");
+        printf("%s", "Table position already taken: Check for hash collision!\n");
     }
 
     //insert data into index position in table
@@ -154,23 +149,62 @@ int main() {
     studentEntry mainStudentTable[TABLELENGTH];
     char testNameA[32] = "John Smith";
     char testNameB[32] = "Jane Smith";
+    char testNameC[32] = "John Doe";
     float testGPA_A = 4.22;
     float testGPA_B = 4.44;
+    float testGPA_C = 3.32;
 
-    //printf("%u\n", (hashDJB2(testNameA) % TABLELENGTH));
-    //printf("%u\n", (hashDJB2(testNameB) % TABLELENGTH));
+    //insertion time test
 
+    auto startTimeA1 = std::chrono::high_resolution_clock::now();
     addStudent(mainStudentTable, 2400220, testNameA, testGPA_A);
+    auto endTimeA1 = std::chrono::high_resolution_clock::now();
+
+    auto startTimeB1 = std::chrono::high_resolution_clock::now();
     addStudent(mainStudentTable, 2400221, testNameB, testGPA_B);
+    auto endTimeB1 = std::chrono::high_resolution_clock::now();
+
+    auto startTimeC1 = std::chrono::high_resolution_clock::now();
+    addStudent(mainStudentTable, 2400223, testNameC, testGPA_C);
+    auto endTimeC1 = std::chrono::high_resolution_clock::now();
+
+    auto elapsedTimeA1 = std::chrono::duration_cast<std::chrono::microseconds>(endTimeA1 - startTimeA1);
+    auto elapsedTimeB1 = std::chrono::duration_cast<std::chrono::microseconds>(endTimeB1 - startTimeB1);
+    auto elapsedTimeC1 = std::chrono::duration_cast<std::chrono::microseconds>(endTimeC1 - startTimeC1);
+
+    printf("Elapsed time for insert A: %d us\n", elapsedTimeA1.count());
+    printf("Elapsed time for insert B: %d us\n", elapsedTimeB1.count());
+    printf("Elapsed time for insert C: %d us\n\n", elapsedTimeC1.count());
+
+
+    //lookup time test
 
     char toSearchStrA[32] = "John Smith";
-    findStudent(mainStudentTable, toSearchStrA);
-
-    char toSearchStrB[32] = "Tom Smith";
-    findStudent(mainStudentTable, toSearchStrB);
-
+    char toSearchStrB[32] = "Tom Smith"; //does not exist in the table
     char toSearchStrC[32] = "Jane Smith";
-    printf("%f", getStudentGPA(mainStudentTable, toSearchStrC));
+
+
+    auto startTimeA = std::chrono::high_resolution_clock::now();
+    findStudent(mainStudentTable, toSearchStrA);
+    auto endTimeA = std::chrono::high_resolution_clock::now();
+
+    auto startTimeB = std::chrono::high_resolution_clock::now();
+    findStudent(mainStudentTable, toSearchStrB);
+    auto endTimeB = std::chrono::high_resolution_clock::now();
+    
+    auto startTimeC = std::chrono::high_resolution_clock::now();
+    printf("%f\n", getStudentGPA(mainStudentTable, toSearchStrC));
+    auto endTimeC = std::chrono::high_resolution_clock::now();
+
+
+    auto elapsedTimeA = std::chrono::duration_cast<std::chrono::microseconds>(endTimeA - startTimeA);
+    auto elapsedTimeB = std::chrono::duration_cast<std::chrono::microseconds>(endTimeB - startTimeB);
+    auto elapsedTimeC = std::chrono::duration_cast<std::chrono::microseconds>(endTimeC - startTimeC);
+
+    printf("Elapsed time for lookup A: %d us\n", elapsedTimeA.count());
+    printf("Elapsed time for lookup B: %d us\n", elapsedTimeB.count());
+    printf("Elapsed time for lookup C: %d us\n", elapsedTimeC.count());
+
 
     //printTable(mainStudentTable, TABLELENGTH);
 
